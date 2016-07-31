@@ -12,8 +12,7 @@ class SVGProcessor
     svgs = Dir["#{@path}/*.svg"].map { |file| get_svg(file) }
     logger.info "== Middleman-Scavenger rebuilding: #{svgs.length} svgs found"
     symbols = svgs.map { |svg| convert_to_symbol(svg) }
-
-    @symbol_string = symbols.join("\n")
+    @symbol_string = create_sprite(symbols)
   end
 
   def to_s
@@ -38,8 +37,22 @@ class SVGProcessor
   end
 
   def convert_to_symbol(svg)
+    defs = svg[:xml].css("//defs").blank? ? '' : svg[:xml].at_css("defs").children.remove
     content = svg[:xml].at_css("svg").children
     viewbox_size = svg[:xml].xpath("//@viewBox").first.value
-    "<symbol viewBox=\"#{viewbox_size}\" id=\"#{@prefix}#{svg[:filename]}\">#{content.to_s.strip}</symbol>"
+    {
+      defs: defs.to_s.strip,
+      content: "<symbol viewBox=\"#{viewbox_size}\" id=\"#{@prefix}#{svg[:filename]}\">#{content.to_s.strip}</symbol>"
+    }
+  end
+
+  def create_sprite(symbols)
+    d = []
+    s = []
+    symbols.each do |symbol|
+      d << symbol[:defs]
+      s << symbol[:content]
+    end
+    "\n<defs>#{d.reject(&:empty?).uniq.join("\n")}</defs>\n#{s.join("\n")}"
   end
 end
