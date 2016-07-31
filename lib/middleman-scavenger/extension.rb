@@ -5,6 +5,7 @@ require 'middleman-core'
 class MiddlemanScavenger < ::Middleman::Extension
   expose_to_template :sprite_sheet_string
   expose_to_template :external_sprite_path
+  expose_to_template :svg
 
   option :path, "./source/images/svg", "Directory containing SVG files"
   option :prefix, "", "Optional prefix for icon names"
@@ -57,6 +58,15 @@ class MiddlemanScavenger < ::Middleman::Extension
     File.write(internal_sprite_path, "<svg xmlns=\"http://www.w3.org/2000/svg\">#{sprite_sheet}</svg>")
   end
 
+  def svg(name, options=nil)
+    if options.nil?
+      "<svg><use xlink:href=\"##{@prefix}#{name}\" /></svg>"
+    else
+      attrs = options.map {|k,v| "#{k}=\"#{v}\"" }.join(" ")
+      "<svg #{attrs}><use xlink:href=\"##{@prefix}#{name}\" /></svg>"
+    end
+  end
+
   helpers do
     def scavenger_sprite_path
       image_path app.config[:svg_sprite_path]
@@ -64,15 +74,6 @@ class MiddlemanScavenger < ::Middleman::Extension
 
     def inline_svg_sprite
       "<svg style=\"display:none;\">#{sprite_sheet_string}</svg>"
-    end
-
-    def svg(name, options=nil)
-      if options.nil?
-        "<svg><use xlink:href=\"##{name}\" /></svg>"
-      else
-        attrs = options.map {|k,v| "#{k}=\"#{v}\"" }.join(" ")
-        "<svg #{attrs}><use xlink:href=\"##{name}\" /></svg>"
-      end
     end
   end
 end
