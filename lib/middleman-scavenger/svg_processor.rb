@@ -10,7 +10,7 @@ class SVGProcessor
 
   def build
     svgs = Dir["#{@path}/*.svg"].map { |file| get_svg(file) }
-    logger.info "Middleman-Scavenger rebuilding: #{svgs.length} svgs found"
+    logger.info "== Middleman-Scavenger rebuilding: #{svgs.length} svgs found"
     symbols = svgs.map { |svg| convert_to_symbol(svg) }
 
     @symbol_string = symbols.join("\n")
